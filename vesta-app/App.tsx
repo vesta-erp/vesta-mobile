@@ -6,6 +6,7 @@ import { useFonts } from 'expo-font';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
 import { MozillaHeadline_400Regular, MozillaHeadline_700Bold } from '@expo-google-fonts/mozilla-headline';
 import { Asimovian_400Regular } from '@expo-google-fonts/asimovian';
+import { VestaLogo } from './src/components/VestaLogo';
 
 import { theme } from './src/theme'; 
 
@@ -32,9 +33,8 @@ export default function App() {
       <StatusBar style="auto" />
       
       <View style={[styles.container, { backgroundColor: theme.light.background }]}>
-        <Text style={[styles.title, { color: theme.light.primary }]}>
-          VESTA
-        </Text>
+        <VestaLogo isDarkTheme={false} variant="full" />
+        
         <Text style={[styles.subtitle, { color: theme.light.textPrimary }]}>
           Plataforma de Gestão Operacional
         </Text>
