@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, StyleProp, ImageStyle } from 'react-native';
+import { Image, StyleProp, ImageStyle } from 'react-native';
+import { styles } from './styles';
 
 interface VestaLogoProps {
   isDarkTheme: boolean;
@@ -12,12 +13,12 @@ export function VestaLogo({ isDarkTheme, variant = 'full', style }: VestaLogoPro
   const getLogoSource = () => {
     if (variant === 'full') {
       return isDarkTheme
-        ? require('../../assets/images/logo_vesta.png')        // Branca
-        : require('../../assets/images/logo_vesta_azule.png'); // Azul
+        ? require('../../../assets/images/logo_vesta.png')
+        : require('../../../assets/images/logo_vesta_azule.png');
     } else {
       return isDarkTheme
-        ? require('../../assets/images/logo-reduzido_vesta.png')        // Branca
-        : require('../../assets/images/logo-reduzido_vesta_azule.png'); // Azul
+        ? require('../../../assets/images/logo-reduzido_vesta.png')
+        : require('../../../assets/images/logo-reduzido_vesta_azule.png');
     }
   };
 
@@ -32,14 +33,3 @@ export function VestaLogo({ isDarkTheme, variant = 'full', style }: VestaLogoPro
     />
   );
 }
-
-const styles = StyleSheet.create({
-  fullLogo: {
-    width: 220,
-    height: 80,
-  },
-  reducedLogo: {
-    width: 60,
-    height: 60,
-  },
-});
