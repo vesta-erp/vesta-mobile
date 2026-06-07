@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { styles } from './styles';
+import { getStyles } from './styles';
+import { useThemeContext } from '../../contexts/ThemeContext';
 
 interface PrimaryButtonProps extends TouchableOpacityProps {
   title: string;
@@ -9,6 +10,9 @@ interface PrimaryButtonProps extends TouchableOpacityProps {
 }
 
 export function PrimaryButton({ title, isLoading = false, ...rest }: PrimaryButtonProps) {
+  const { themeType } = useThemeContext();
+  const styles = getStyles(themeType);
+
   return (
     <TouchableOpacity 
       style={[styles.button, rest.disabled && styles.buttonDisabled]} 
@@ -16,7 +20,7 @@ export function PrimaryButton({ title, isLoading = false, ...rest }: PrimaryButt
       {...rest}
     >
       {isLoading ? (
-        <ActivityIndicator color={theme.light.surface} />
+        <ActivityIndicator color="#FFFFFF" />
       ) : (
         <Text style={styles.title}>{title}</Text>
       )}

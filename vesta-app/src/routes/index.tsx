@@ -6,9 +6,9 @@ import { AppRoutes } from './app.routes';
 import { theme } from '../theme';
 
 export function Routes() {
-  // Simulando um usuário não logado. 
-  // Futuramente isso virá de um Contexto (AuthContext)
-  const user = null; 
+  // Simulando um usuário não logado
+  // Futuramente AuthContext
+  const user = true; 
 
   return (
     <View style={styles.container}>

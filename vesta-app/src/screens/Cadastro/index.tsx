@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomInput } from '../../components/CustomInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { theme } from '../../theme';
-import { styles } from './styles';
+import { useThemeContext } from '../../contexts/ThemeContext';
+import { getStyles } from './styles';
 
 export function CadastroScreen({ navigation }: any) {
   const [nome, setNome] = useState('');
@@ -24,6 +25,10 @@ export function CadastroScreen({ navigation }: any) {
   const [confirmPassword, setConfirmPassword] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { themeType } = useThemeContext();
+  const styles = getStyles(themeType);
+  const colors = theme[themeType];
 
   const handleDocumentoChange = (text: string) => {
     let value = text.replace(/\D/g, '');
@@ -104,7 +109,7 @@ export function CadastroScreen({ navigation }: any) {
               style={styles.backButton} 
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={28} color={theme.light.surface} />
+              <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
             </TouchableOpacity>
             <Text style={styles.title}>Nova Conta</Text>
           </View>

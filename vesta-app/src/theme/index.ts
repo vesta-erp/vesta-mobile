@@ -5,11 +5,12 @@ const brandColors = {
 };
 
 const grays = {
-  900: '#3C3C3C',
-  700: '#515151',
-  500: '#666666',
-  300: '#8C8C8C',
-  100: '#B5B5B5',
+  900: '#1A1D21', 
+  800: '#262A31', 
+  700: '#3A4351', 
+  500: '#6B7A90', 
+  300: '#C2C8D0', 
+  100: '#F0F2F5', 
   white: '#FFFFFF',
 };
 
@@ -26,18 +27,18 @@ export const theme = {
     background: grays[100],
     surface: grays.white,
     textPrimary: grays[900],
-    textSecondary: grays[700],
+    textSecondary: grays[500],
     border: grays[300],
-    tabBar: brandColors.primary,
+    tabBar: grays.white,
   },
   dark: {
     ...brandColors,
     background: grays[900],
-    surface: grays[700],
+    surface: grays[800],
     textPrimary: grays.white,
-    textSecondary: grays[100],
-    border: grays[500],
-    tabBar: grays[900],
+    textSecondary: grays[300],
+    border: grays[700],
+    tabBar: grays[800],
   }
 };
 

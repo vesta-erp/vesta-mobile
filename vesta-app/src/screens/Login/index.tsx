@@ -11,18 +11,22 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { VestaLogo } from '../../components/VestaLogo';
 import { CustomInput } from '../../components/CustomInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { styles } from './styles';
+
+import { useThemeContext } from '../../contexts/ThemeContext';
+import { getStyles } from './styles';
 
 export function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const { themeType } = useThemeContext();
+  const styles = getStyles(themeType);
+
   const handleLogin = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      // navigation.replace('MainTabs'); 
     }, 1500);
   };
 
@@ -38,7 +42,7 @@ export function LoginScreen({ navigation }: any) {
         >
           
           <View style={styles.logoContainer}>
-            <VestaLogo isDarkTheme={true} variant="full" />
+            <VestaLogo isDarkTheme={themeType === 'dark'} variant="full" />
           </View>
 
           <Text style={styles.welcomeText}>Bem-vindo à Vesta</Text>
@@ -67,7 +71,7 @@ export function LoginScreen({ navigation }: any) {
 
           <PrimaryButton 
             title="ENTRAR" 
-            onPress={handleLogin} 
+            onPress={() => navigation.navigate('Home')}
             isLoading={isLoading}
           />
 
