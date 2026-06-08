@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
   Alert
@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
@@ -70,6 +71,24 @@ export function AcolhimentoScreen({ navigation }: any) {
     setNovoMembroNasc(value);
   };
 
+  const handleDocChange = (text: string) => {
+    let value = text.replace(/\D/g, '');
+
+    if (novoMembroTpDoc === 'CPF') {
+      if (value.length > 11) value = value.substring(0, 11);
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      if (value.length > 9) value = value.substring(0, 9);
+      value = value.replace(/(\d{2})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    setNovoMembroNrDoc(value);
+  };
+
   const handleAddMembro = () => {
     if (!novoMembroNome || !novoMembroNasc || !novoMembroNrDoc) {
       Alert.alert('Atenção', 'Preencha todos os dados do membro antes de adicionar.');
@@ -117,15 +136,18 @@ export function AcolhimentoScreen({ navigation }: any) {
 
     try {
       setIsSubmitting(true);
-      
-      // Disparo real para a API
+
       await api.post(`/api/abrigos/${ABRIGO_ID}/familias/acolhimento`, payload);
 
-      Alert.alert(
-        'Acolhimento Concluído', 
-        'A família foi registrada com sucesso no abrigo.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }] // Volta para a tela anterior
-      );
+      Toast.show({
+        type: 'success',
+        text1: 'Acolhimento Concluído!',
+        text2: 'A família foi registrada com sucesso no abrigo.',
+        position: 'top',
+        visibilityTime: 4000,
+      });
+
+      navigation.goBack();
 
     } catch (error) {
       console.log('Erro no acolhimento:', error);
@@ -145,7 +167,7 @@ export function AcolhimentoScreen({ navigation }: any) {
           <Text style={styles.title}>Acolher Família</Text>
         </View>
 
-        <KeyboardAwareScrollView 
+        <KeyboardAwareScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           enableOnAndroid={true}
@@ -155,18 +177,18 @@ export function AcolhimentoScreen({ navigation }: any) {
           <Text style={styles.sectionTitle}>Dados do Responsável</Text>
           <View style={styles.cardForm}>
             <Text style={styles.inputLabel}>Nome Completo</Text>
-            <CustomInput 
+            <CustomInput
               iconName="person-outline"
-              placeholder="Ex: João da Silva" 
+              placeholder="Ex: João da Silva"
               value={nmResponsavel}
               onChangeText={setNmResponsavel}
               autoCapitalize="words"
             />
 
             <Text style={styles.inputLabel}>CPF</Text>
-            <CustomInput 
+            <CustomInput
               iconName="card-outline"
-              placeholder="000.000.000-00" 
+              placeholder="000.000.000-00"
               value={nrCpfResponsavel}
               onChangeText={handleCpfChange}
               keyboardType="numeric"
@@ -174,9 +196,9 @@ export function AcolhimentoScreen({ navigation }: any) {
             />
 
             <Text style={styles.inputLabel}>Telefone Contato</Text>
-            <CustomInput 
+            <CustomInput
               iconName="call-outline"
-              placeholder="(00) 00000-0000" 
+              placeholder="(00) 00000-0000"
               value={nrTelefone}
               onChangeText={handleTelefoneChange}
               keyboardType="phone-pad"
@@ -185,7 +207,7 @@ export function AcolhimentoScreen({ navigation }: any) {
           </View>
 
           <Text style={styles.sectionTitle}>Membros da Família</Text>
-          
+
           {membros.length > 0 && (
             <View style={styles.memberList}>
               {membros.map((m, index) => (
@@ -204,24 +226,40 @@ export function AcolhimentoScreen({ navigation }: any) {
 
           <View style={styles.cardForm}>
             <Text style={styles.inputLabel}>Adicionar Dependente</Text>
-            <CustomInput 
-              placeholder="Nome do membro" 
+            <CustomInput
+              placeholder="Nome do membro"
               value={novoMembroNome}
               onChangeText={setNovoMembroNome}
               autoCapitalize="words"
             />
-            
+
+            <View style={[styles.row, { marginBottom: 10 }]}>
+              <TouchableOpacity
+                style={{ flex: 1, padding: 8, borderWidth: 1, borderColor: novoMembroTpDoc === 'RG' ? colors.primary : colors.border, borderRadius: 8, marginRight: 4, alignItems: 'center', backgroundColor: novoMembroTpDoc === 'RG' ? colors.primary + '20' : 'transparent' }}
+                onPress={() => { setNovoMembroTpDoc('RG'); setNovoMembroNrDoc(''); }}
+              >
+                <Text style={{ color: novoMembroTpDoc === 'RG' ? colors.primary : colors.textSecondary, fontWeight: 'bold' }}>RG</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, padding: 8, borderWidth: 1, borderColor: novoMembroTpDoc === 'CPF' ? colors.primary : colors.border, borderRadius: 8, marginLeft: 4, alignItems: 'center', backgroundColor: novoMembroTpDoc === 'CPF' ? colors.primary + '20' : 'transparent' }}
+                onPress={() => { setNovoMembroTpDoc('CPF'); setNovoMembroNrDoc(''); }}
+              >
+                <Text style={{ color: novoMembroTpDoc === 'CPF' ? colors.primary : colors.textSecondary, fontWeight: 'bold' }}>CPF</Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.row}>
               <View style={styles.col}>
-                <CustomInput 
-                  placeholder="Doc (RG/CPF)" 
+                <CustomInput
+                  placeholder={novoMembroTpDoc === 'RG' ? "00.000.000-0" : "000.000.000-00"}
                   value={novoMembroNrDoc}
-                  onChangeText={setNovoMembroNrDoc}
+                  onChangeText={handleDocChange}
+                  keyboardType="numeric"
                 />
               </View>
               <View style={styles.colLast}>
-                <CustomInput 
-                  placeholder="Nascimento" 
+                <CustomInput
+                  placeholder="Nascimento"
                   value={novoMembroNasc}
                   onChangeText={handleDataNascChange}
                   keyboardType="numeric"
@@ -236,9 +274,9 @@ export function AcolhimentoScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          <PrimaryButton 
-            title="CONCLUIR ACOLHIMENTO" 
-            onPress={handleSubmit} 
+          <PrimaryButton
+            title="CONCLUIR ACOLHIMENTO"
+            onPress={handleSubmit}
             isLoading={isSubmitting}
           />
         </KeyboardAwareScrollView>

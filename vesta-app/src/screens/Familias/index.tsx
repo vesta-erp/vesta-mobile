@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
-import { theme } from '../../theme';
+import { theme, fonts } from '../../theme';
 import { getStyles } from './styles';
 import { api } from '../../services/api';
 
@@ -19,6 +19,8 @@ export function FamiliasScreen({ navigation }: any) {
     const [familias, setFamilias] = useState<any[]>([]);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [modalMembrosVisible, setModalMembrosVisible] = useState(false);
+    const [familiaSelecionada, setFamiliaSelecionada] = useState<any>(null);
 
     useEffect(() => {
         buscarFamilias();
@@ -85,15 +87,30 @@ export function FamiliasScreen({ navigation }: any) {
                 </View>
                 <Text style={styles.responsavelName}>{item.nmResponsavel}</Text>
             </View>
+            
             <View style={styles.infoRow}>
                 <Ionicons name="call-outline" size={16} color={colors.textSecondary} />
                 <Text style={styles.infoText}>{item.nrTelefone}</Text>
             </View>
+            
             <View style={styles.infoRow}>
                 <Ionicons name="log-in-outline" size={16} color={colors.textSecondary} />
                 <Text style={styles.infoText}>Entrada: {formatData(item.dtEntrada)}</Text>
             </View>
+            
             <View style={styles.divider} />
+            
+            <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, marginBottom: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary, borderRadius: 8 }}
+                onPress={() => {
+                    setFamiliaSelecionada(item);
+                    setModalMembrosVisible(true);
+                }}
+            >
+                <Ionicons name="eye-outline" size={20} color={colors.primary} />
+                <Text style={{ fontFamily: fonts.bold || 'System', fontSize: 14, color: colors.primary, marginLeft: 8 }}>Ver Dependentes</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.checkoutButton} activeOpacity={0.7} onPress={() => handleSaida(item)}>
                 <Ionicons name="log-out-outline" size={20} color={colors.error} />
                 <Text style={styles.checkoutText}>Registrar Saída</Text>
@@ -139,6 +156,40 @@ export function FamiliasScreen({ navigation }: any) {
                     />
                 )}
             </View>
+
+            {/* Modal de Detalhes dos Membros */}
+            <Modal visible={modalMembrosVisible} animationType="slide" transparent={true} onRequestClose={() => setModalMembrosVisible(false)}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '70%' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: colors.textPrimary }}>Dependentes</Text>
+                            <TouchableOpacity onPress={() => setModalMembrosVisible(false)}>
+                                <Ionicons name="close" size={28} color={colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <Text style={{ fontSize: 16, color: colors.textSecondary, marginBottom: 16 }}>
+                            Responsável: <Text style={{ fontWeight: 'bold', color: colors.textPrimary }}>{familiaSelecionada?.nmResponsavel}</Text>
+                        </Text>
+
+                        {/* Verifica se a API retornou o array de membros */}
+                        {familiaSelecionada?.membros && familiaSelecionada.membros.length > 0 ? (
+                            <FlatList
+                                data={familiaSelecionada.membros}
+                                keyExtractor={(item, index) => String(index)}
+                                renderItem={({ item }) => (
+                                    <View style={{ padding: 12, backgroundColor: colors.surface, borderRadius: 8, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: colors.secondary }}>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 16, color: colors.textPrimary }}>{item.nmPessoa}</Text>
+                                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>Doc: {item.nrDocumento}</Text>
+                                    </View>
+                                )}
+                            />
+                        ) : (
+                            <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 20 }}>Nenhum dependente cadastrado para esta família.</Text>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

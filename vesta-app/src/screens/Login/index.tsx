@@ -55,7 +55,10 @@ export function LoginScreen({ navigation }: any) {
       await AsyncStorage.setItem('@Vesta:user', JSON.stringify({ email, perfil }));
 
       setIsLoading(false);
-      navigation.navigate('MainTabs'); 
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
       
     } catch (error: any) {
       setIsLoading(false);
