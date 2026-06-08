@@ -1,24 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
 import { getStyles } from './styles';
+import { api } from '../../services/api';
 
-const MOCK_FAMILIAS = [
-    {
-        idFamilia: 1, nmResponsavel: "Maria Silva Santos", nrCpfResponsavel: "111.222.333-44",
-        nrTelefone: "(11) 98888-7777", idAbrigo: 1, nmAbrigo: "Ginásio Central",
-        dtEntrada: "2026-06-05T10:30:00.000Z", presente: true
-    },
-    {
-        idFamilia: 2, nmResponsavel: "João Pedro Oliveira", nrCpfResponsavel: "555.666.777-88",
-        nrTelefone: "(11) 95555-4444", idAbrigo: 1, nmAbrigo: "Ginásio Central",
-        dtEntrada: "2026-06-07T15:45:00.000Z", presente: true
-    }
-];
+const ABRIGO_ID = 1;
 
 export function FamiliasScreen({ navigation }: any) {
     const insets = useSafeAreaInsets();
@@ -26,10 +16,34 @@ export function FamiliasScreen({ navigation }: any) {
     const styles = getStyles(themeType);
     const colors = theme[themeType];
 
-    const [familias, setFamilias] = useState(MOCK_FAMILIAS);
+    const [familias, setFamilias] = useState<any[]>([]);
     const [search, setSearch] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        buscarFamilias();
+    }, []);
+
+    const buscarFamilias = async () => {
+        try {
+            setIsLoading(true);
+            const response = await api.get(`/api/abrigos/${ABRIGO_ID}/familias`);
+
+            const dados = response.data._embedded?.familiaResponseList || response.data || [];
+
+            const familiasPresentes = (Array.isArray(dados) ? dados : []).filter(f => f.presente);
+
+            setFamilias(familiasPresentes);
+        } catch (error) {
+            console.log('Erro ao buscar famílias:', error);
+            Alert.alert('Erro', 'Não foi possível carregar as famílias acolhidas.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const formatData = (isoString: string) => {
+        if (!isoString) return '--/--';
         const data = new Date(isoString);
         return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')} às ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}`;
     };
@@ -42,19 +56,25 @@ export function FamiliasScreen({ navigation }: any) {
                 { text: 'Cancelar', style: 'cancel' },
                 {
                     text: 'Confirmar Saída', style: 'destructive',
-                    onPress: () => {
-                        setFamilias(prev => prev.filter(f => f.idFamilia !== familia.idFamilia));
-                        Alert.alert('Sucesso', 'Saída registrada. Vagas atualizadas!');
+                    onPress: async () => {
+                        try {
+                            await api.post(`/api/abrigos/${ABRIGO_ID}/familias/${familia.idFamilia}/saida`);
+
+                            setFamilias(prev => prev.filter(f => f.idFamilia !== familia.idFamilia));
+                            Alert.alert('Sucesso', 'Saída registrada. Vagas atualizadas!');
+                        } catch (error) {
+                            console.log('Erro ao registrar saída:', error);
+                            Alert.alert('Erro', 'Falha ao comunicar a saída ao servidor.');
+                        }
                     }
                 }
             ]
         );
     };
 
-    // <-- LÓGICA DE FILTRO DA PESQUISA
     const familiasFiltradas = familias.filter(f =>
-        f.nmResponsavel.toLowerCase().includes(search.toLowerCase()) ||
-        f.nrCpfResponsavel.includes(search)
+        f.nmResponsavel?.toLowerCase().includes(search.toLowerCase()) ||
+        f.nrCpfResponsavel?.includes(search)
     );
 
     const renderItem = ({ item }: any) => (
@@ -91,7 +111,6 @@ export function FamiliasScreen({ navigation }: any) {
             </View>
 
             <View style={styles.content}>
-                {/* BARRA DE PESQUISA */}
                 <View style={styles.searchContainer}>
                     <Ionicons name="search" size={20} color={colors.textSecondary} />
                     <TextInput
@@ -103,18 +122,22 @@ export function FamiliasScreen({ navigation }: any) {
                     />
                 </View>
 
-                <FlatList
-                    data={familiasFiltradas} // <-- Usando a lista filtrada
-                    keyExtractor={(item) => String(item.idFamilia)}
-                    renderItem={renderItem}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContent}
-                    ListEmptyComponent={
-                        <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 20 }}>
-                            Nenhuma família encontrada.
-                        </Text>
-                    }
-                />
+                {isLoading ? (
+                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+                ) : (
+                    <FlatList
+                        data={familiasFiltradas}
+                        keyExtractor={(item) => String(item.idFamilia)}
+                        renderItem={renderItem}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 20 }}>
+                                Nenhuma família encontrada.
+                            </Text>
+                        }
+                    />
+                )}
             </View>
         </View>
     );
