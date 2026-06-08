@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Toast from 'react-native-toast-message';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
@@ -72,31 +73,24 @@ export function OcorrenciasScreen({ navigation }: any) {
 
     const handleNovaOcorrencia = async () => {
         if (!titulo || !descricao) {
-            Alert.alert('Erro', 'Preencha o título e a descrição da ocorrência.');
+            Toast.show({ type: 'info', text1: 'Atenção', text2: 'Preencha o título e a descrição da ocorrência.' });
             return;
         }
 
         try {
             setIsSubmitting(true);
-
             await api.post(`/api/abrigos/${ABRIGO_ID}/ocorrencias`, {
-                nmTitulo: titulo,
-                dsDescricao: descricao,
-                tpSeveridade: severidade
+                nmTitulo: titulo, dsDescricao: descricao, tpSeveridade: severidade
             });
 
-            Alert.alert('Sucesso', 'Ocorrência registrada e notificada!');
+            Toast.show({ type: 'success', text1: 'Registrado', text2: 'Ocorrência salva e notificada!' });
             setModalVisible(false);
-            setTitulo('');
-            setDescricao('');
-            setSeveridade('MEDIA');
-
-            // Busca atualizada do backend
+            setTitulo(''); setDescricao(''); setSeveridade('MEDIA');
             buscarOcorrencias();
 
         } catch (error) {
             console.log('Erro ao criar ocorrência:', error);
-            Alert.alert('Erro', 'Falha ao registrar a ocorrência.');
+            Toast.show({ type: 'error', text1: 'Erro', text2: 'Falha ao registrar a ocorrência no servidor.' });
         } finally {
             setIsSubmitting(false);
         }

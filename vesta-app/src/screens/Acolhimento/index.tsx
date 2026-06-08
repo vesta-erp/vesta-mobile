@@ -91,11 +91,11 @@ export function AcolhimentoScreen({ navigation }: any) {
 
   const handleAddMembro = () => {
     if (!novoMembroNome || !novoMembroNasc || !novoMembroNrDoc) {
-      Alert.alert('Atenção', 'Preencha todos os dados do membro antes de adicionar.');
+      Toast.show({ type: 'info', text1: 'Atenção', text2: 'Preencha todos os dados do membro antes de adicionar.' });
       return;
     }
     if (novoMembroNasc.length < 10) {
-      Alert.alert('Atenção', 'Data de nascimento inválida.');
+      Toast.show({ type: 'info', text1: 'Data Inválida', text2: 'Digite uma data de nascimento válida.' });
       return;
     }
 
@@ -123,7 +123,7 @@ export function AcolhimentoScreen({ navigation }: any) {
 
   const handleSubmit = async () => {
     if (!nmResponsavel || nrCpfResponsavel.length < 14 || nrTelefone.length < 14) {
-      Alert.alert('Erro', 'Preencha todos os dados obrigatórios do responsável.');
+      Toast.show({ type: 'info', text1: 'Dados Incompletos', text2: 'Preencha os dados do responsável corretamente.' });
       return;
     }
 
@@ -151,7 +151,7 @@ export function AcolhimentoScreen({ navigation }: any) {
 
     } catch (error) {
       console.log('Erro no acolhimento:', error);
-      Alert.alert('Erro', 'Falha ao registrar a família no servidor.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Falha ao registrar a família no servidor.' });
     } finally {
       setIsSubmitting(false);
     }

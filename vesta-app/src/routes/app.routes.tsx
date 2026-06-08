@@ -18,6 +18,7 @@ import { FamiliasScreen } from '../screens/Familias';
 import { AcolhimentoScreen } from '../screens/Acolhimento';
 import { OcorrenciasScreen } from '../screens/Ocorrencias';
 import { TemaScreen } from '../screens/Tema';
+import { SobreScreen } from '../screens/Sobre';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -102,6 +103,7 @@ export function AppRoutes() {
       <Stack.Screen name="MainTabs" component={TabRoutes} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Tema" component={TemaScreen} />
+      <Stack.Screen name="Sobre" component={SobreScreen} />
       <Stack.Screen name="Familias" component={FamiliasScreen} />
       <Stack.Screen name="Acolhimento" component={AcolhimentoScreen} />
       <Stack.Screen name="Ocorrencias" component={OcorrenciasScreen} />

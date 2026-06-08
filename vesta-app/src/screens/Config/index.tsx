@@ -70,6 +70,7 @@ export function ConfigScreen({ navigation }: any) {
         <OptionItem icon="help-buoy-outline" title="Central de Ajuda" />
         <OptionItem icon="document-text-outline" title="Termos de Uso" />
         <OptionItem icon="shield-checkmark-outline" title="Privacidade" />
+        <OptionItem icon="information-circle-outline" title="Sobre o App" onPress={() => navigation.navigate('Sobre')} />
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
           <Ionicons name="log-out-outline" size={24} color={colors.error} />

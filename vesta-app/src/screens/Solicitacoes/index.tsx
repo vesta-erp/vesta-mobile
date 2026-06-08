@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Toast from 'react-native-toast-message';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
@@ -69,30 +70,24 @@ export function SolicitacoesScreen() {
 
   const handleNovaSolicitacao = async () => {
     if (!recursoId || !quantidade || !justificativa) {
-      Alert.alert('Erro', 'Preencha todos os campos da solicitação.');
+      Toast.show({ type: 'info', text1: 'Atenção', text2: 'Preencha todos os campos da solicitação.' });
       return;
     }
 
     try {
       setIsSubmitting(true);
-
       await api.post(`/api/abrigos/${ABRIGO_ID}/solicitacoes`, {
-        idRecurso: Number(recursoId),
-        qtSolicitada: Number(quantidade),
-        dsJustificativa: justificativa
+        idRecurso: Number(recursoId), qtSolicitada: Number(quantidade), dsJustificativa: justificativa
       });
 
-      Alert.alert('Sucesso', 'Solicitação enviada para a central!');
+      Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Solicitação enviada para a central!' });
       setModalVisible(false);
-      setRecursoId('');
-      setQuantidade('');
-      setJustificativa('');
-
+      setRecursoId(''); setQuantidade(''); setJustificativa('');
       buscarSolicitacoes();
 
     } catch (error) {
       console.log('Erro ao criar solicitação:', error);
-      Alert.alert('Erro', 'Falha ao enviar a solicitação.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Falha ao enviar a solicitação.' });
     } finally {
       setIsSubmitting(false);
     }

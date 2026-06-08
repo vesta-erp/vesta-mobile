@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme, fonts } from '../../theme';
@@ -38,7 +39,11 @@ export function FamiliasScreen({ navigation }: any) {
             setFamilias(familiasPresentes);
         } catch (error) {
             console.log('Erro ao buscar famílias:', error);
-            Alert.alert('Erro', 'Não foi possível carregar as famílias acolhidas.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erro',
+                text2: 'Não foi possível carregar as famílias acolhidas.',
+            });
         } finally {
             setIsLoading(false);
         }
@@ -61,12 +66,20 @@ export function FamiliasScreen({ navigation }: any) {
                     onPress: async () => {
                         try {
                             await api.post(`/api/abrigos/${ABRIGO_ID}/familias/${familia.idFamilia}/saida`);
-
                             setFamilias(prev => prev.filter(f => f.idFamilia !== familia.idFamilia));
-                            Alert.alert('Sucesso', 'Saída registrada. Vagas atualizadas!');
+
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Saída Registrada',
+                                text2: 'A família foi removida e as vagas atualizadas.',
+                            });
                         } catch (error) {
                             console.log('Erro ao registrar saída:', error);
-                            Alert.alert('Erro', 'Falha ao comunicar a saída ao servidor.');
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erro de Conexão',
+                                text2: 'Falha ao comunicar a saída ao servidor.',
+                            });
                         }
                     }
                 }
@@ -87,19 +100,19 @@ export function FamiliasScreen({ navigation }: any) {
                 </View>
                 <Text style={styles.responsavelName}>{item.nmResponsavel}</Text>
             </View>
-            
+
             <View style={styles.infoRow}>
                 <Ionicons name="call-outline" size={16} color={colors.textSecondary} />
                 <Text style={styles.infoText}>{item.nrTelefone}</Text>
             </View>
-            
+
             <View style={styles.infoRow}>
                 <Ionicons name="log-in-outline" size={16} color={colors.textSecondary} />
                 <Text style={styles.infoText}>Entrada: {formatData(item.dtEntrada)}</Text>
             </View>
-            
+
             <View style={styles.divider} />
-            
+
             <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, marginBottom: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary, borderRadius: 8 }}
                 onPress={() => {
@@ -167,7 +180,7 @@ export function FamiliasScreen({ navigation }: any) {
                                 <Ionicons name="close" size={28} color={colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
-                        
+
                         <Text style={{ fontSize: 16, color: colors.textSecondary, marginBottom: 16 }}>
                             Responsável: <Text style={{ fontWeight: 'bold', color: colors.textPrimary }}>{familiaSelecionada?.nmResponsavel}</Text>
                         </Text>

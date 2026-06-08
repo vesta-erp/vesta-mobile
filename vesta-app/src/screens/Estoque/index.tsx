@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
@@ -33,7 +34,7 @@ export function EstoqueScreen() {
       
     } catch (error) {
       console.log('Erro ao buscar estoque:', error);
-      Alert.alert('Erro', 'Não foi possível carregar o estoque do abrigo.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível carregar o estoque.' });
     } finally {
       setIsLoading(false);
     }
@@ -60,27 +61,21 @@ export function EstoqueScreen() {
           onPress: async (quantidade?: string) => {
             const qtd = Number(quantidade);
             if (!quantidade || isNaN(qtd) || qtd <= 0) {
-              Alert.alert('Erro', 'Digite uma quantidade válida.');
+              Toast.show({ type: 'info', text1: 'Atenção', text2: 'Digite uma quantidade válida maior que zero.' });
               return;
             }
 
             try {
-              // Dispara o POST para registrar a movimentação
               await api.post(`/api/abrigos/${ABRIGO_ID}/estoque/movimentacao`, {
-                idRecurso: item.idRecurso,
-                tpMovimentacao: tipoMovimento,
-                qtMovimentada: qtd,
-                dsObservacao: "Movimentação registrada via App"
+                idRecurso: item.idRecurso, tpMovimentacao: tipoMovimento, qtMovimentada: qtd, dsObservacao: "Movimentação via App"
               });
 
-              Alert.alert('Sucesso', 'Movimentação registrada no sistema!');
-              
-              // Recarrega o estoque para atualizar as quantidades na tela
+              Toast.show({ type: 'success', text1: 'Movimentação Salva', text2: 'Estoque atualizado com sucesso!' });
               buscarEstoque();
 
             } catch (error) {
               console.log('Erro ao movimentar estoque:', error);
-              Alert.alert('Erro', 'Falha ao registrar a movimentação.');
+              Toast.show({ type: 'error', text1: 'Erro', text2: 'Falha ao registrar a movimentação.' });
             }
           } 
         }

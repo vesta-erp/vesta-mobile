@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 import { VestaLogo } from '../../components/VestaLogo';
 import { theme } from '../../theme';
@@ -53,7 +54,11 @@ export function HomeScreen({ navigation }: any) {
 
     } catch (error) {
       console.log('Erro ao buscar dados da Home:', error);
-      Alert.alert('Erro de Conexão', 'Não foi possível carregar os dados do abrigo.');
+      Toast.show({
+        type: 'error',
+        text1: 'Erro de Conexão',
+        text2: 'Não foi possível carregar os dados do abrigo.',
+      });
     } finally {
       setIsLoading(false);
     }
