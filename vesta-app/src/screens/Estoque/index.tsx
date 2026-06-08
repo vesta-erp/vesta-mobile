@@ -1,51 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
 import { getStyles } from './styles';
+import { api } from '../../services/api';
 
-// Estrutura Swagger
-const MOCK_ESTOQUE = [
-  {
-    idEstoque: 1,
-    idAbrigo: 1,
-    idRecurso: 101,
-    nmRecurso: "Água Mineral 1L",
-    tpRecurso: "AGUA",
-    dsUnidadeMedida: "Garrafas",
-    qtAtual: 45,
-    qtMinima: 100,
-    abaixoMinimo: true,
-    dtAtualizacao: "2026-06-08T05:10:26.370Z"
-  },
-  {
-    idEstoque: 2,
-    idAbrigo: 1,
-    idRecurso: 102,
-    nmRecurso: "Cestas Básicas",
-    tpRecurso: "ALIMENTO",
-    dsUnidadeMedida: "Unidades",
-    qtAtual: 150,
-    qtMinima: 50,
-    abaixoMinimo: false,
-    dtAtualizacao: "2026-06-08T05:10:26.370Z"
-  },
-  {
-    idEstoque: 3,
-    idAbrigo: 1,
-    idRecurso: 103,
-    nmRecurso: "Cobertores",
-    tpRecurso: "ROUPA",
-    dsUnidadeMedida: "Peças",
-    qtAtual: 20,
-    qtMinima: 30,
-    abaixoMinimo: true,
-    dtAtualizacao: "2026-06-08T05:10:26.370Z"
-  }
-];
+const ABRIGO_ID = 1; // Fixo para testes
 
 export function EstoqueScreen() {
   const insets = useSafeAreaInsets();
@@ -53,9 +16,29 @@ export function EstoqueScreen() {
   const styles = getStyles(themeType);
   const colors = theme[themeType];
 
-  const [estoque, setEstoque] = useState(MOCK_ESTOQUE);
+  const [estoque, setEstoque] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Ícone dinâmico baseado no tipo do recurso
+  useEffect(() => {
+    buscarEstoque();
+  }, []);
+
+  const buscarEstoque = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get(`/api/abrigos/${ABRIGO_ID}/estoque`);
+      
+      const dados = response.data._embedded?.estoqueResponseList || response.data || [];
+      setEstoque(Array.isArray(dados) ? dados : []);
+      
+    } catch (error) {
+      console.log('Erro ao buscar estoque:', error);
+      Alert.alert('Erro', 'Não foi possível carregar o estoque do abrigo.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getIconForType = (tipo: string) => {
     switch (tipo) {
       case 'AGUA': return 'water-outline';
@@ -66,7 +49,6 @@ export function EstoqueScreen() {
     }
   };
 
-  // Futuramente, esses botões vão chamar o POST de Movimentação da API
   const handleMovimentacao = (item: any, tipoMovimento: 'ENTRADA' | 'SAIDA') => {
     Alert.prompt(
       `Registrar ${tipoMovimento}`,
@@ -75,9 +57,31 @@ export function EstoqueScreen() {
         { text: 'Cancelar', style: 'cancel' },
         { 
           text: 'Confirmar', 
-          onPress: (quantidade?: string) => {
-            console.log(`Payload pra API: { idRecurso: ${item.idRecurso}, tpMovimentacao: '${tipoMovimento}', qtMovimentada: ${quantidade} }`);
-            Alert.alert('Sucesso', 'Movimentação registrada localmente para teste!');
+          onPress: async (quantidade?: string) => {
+            const qtd = Number(quantidade);
+            if (!quantidade || isNaN(qtd) || qtd <= 0) {
+              Alert.alert('Erro', 'Digite uma quantidade válida.');
+              return;
+            }
+
+            try {
+              // Dispara o POST para registrar a movimentação
+              await api.post(`/api/abrigos/${ABRIGO_ID}/estoque/movimentacao`, {
+                idRecurso: item.idRecurso,
+                tpMovimentacao: tipoMovimento,
+                qtMovimentada: qtd,
+                dsObservacao: "Movimentação registrada via App"
+              });
+
+              Alert.alert('Sucesso', 'Movimentação registrada no sistema!');
+              
+              // Recarrega o estoque para atualizar as quantidades na tela
+              buscarEstoque();
+
+            } catch (error) {
+              console.log('Erro ao movimentar estoque:', error);
+              Alert.alert('Erro', 'Falha ao registrar a movimentação.');
+            }
           } 
         }
       ],
@@ -150,17 +154,28 @@ export function EstoqueScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.title}>Estoque</Text>
-        <Ionicons name="swap-horizontal" size={28} color="#FFFFFF" />
+        <TouchableOpacity onPress={buscarEstoque}>
+          <Ionicons name="refresh" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
-        <FlatList
-          data={estoque}
-          keyExtractor={(item) => String(item.idEstoque)}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        />
+        {isLoading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={estoque}
+            keyExtractor={(item) => String(item.idEstoque)}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 20 }}>
+                Nenhum recurso encontrado no estoque.
+              </Text>
+            }
+          />
+        )}
       </View>
     </View>
   );

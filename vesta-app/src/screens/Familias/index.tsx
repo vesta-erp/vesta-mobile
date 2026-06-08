@@ -8,7 +8,7 @@ import { theme } from '../../theme';
 import { getStyles } from './styles';
 import { api } from '../../services/api';
 
-const ABRIGO_ID = 1;
+const ABRIGO_ID = 1; // Fixo para testes
 
 export function FamiliasScreen({ navigation }: any) {
     const insets = useSafeAreaInsets();

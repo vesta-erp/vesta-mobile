@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Alert, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+    View, Text, FlatList, TouchableOpacity, Modal,
+    TextInput, Alert, Platform, ScrollView, ActivityIndicator
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -8,17 +11,9 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
 import { getStyles } from './styles';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { api } from '../../services/api';
 
-const MOCK_OCORRENCIAS = [
-    {
-        idOcorrencia: 1, idAbrigo: 1, nmTitulo: "Vazamento no refeitório", dsDescricao: "Cano estourou próximo à cozinha.",
-        tpSeveridade: "ALTA", stStatus: "ABERTA", dtOcorrencia: "2026-06-08T08:30:00.000Z",
-    },
-    {
-        idOcorrencia: 2, idAbrigo: 1, nmTitulo: "Lâmpadas queimadas", dsDescricao: "Três lâmpadas do alojamento B queimaram.",
-        tpSeveridade: "BAIXA", stStatus: "RESOLVIDA", dtOcorrencia: "2026-06-07T14:15:00.000Z",
-    }
-];
+const ABRIGO_ID = 1; // Fixo para testes
 
 export function OcorrenciasScreen({ navigation }: any) {
     const insets = useSafeAreaInsets();
@@ -26,15 +21,42 @@ export function OcorrenciasScreen({ navigation }: any) {
     const styles = getStyles(themeType);
     const colors = theme[themeType];
 
-    const [ocorrencias, setOcorrencias] = useState(MOCK_OCORRENCIAS);
+    const [ocorrencias, setOcorrencias] = useState<any[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [filtroStatus, setFiltroStatus] = useState('TODAS');
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [titulo, setTitulo] = useState('');
     const [descricao, setDescricao] = useState('');
     const [severidade, setSeveridade] = useState<'BAIXA' | 'MEDIA' | 'ALTA'>('MEDIA');
 
+    useEffect(() => {
+        buscarOcorrencias();
+    }, []);
+
+    const buscarOcorrencias = async () => {
+        try {
+            setIsLoading(true);
+            const response = await api.get(`/api/abrigos/${ABRIGO_ID}/ocorrencias`);
+            console.log('RESPOSTA REAL DA API:', response.data);
+            const dados = response.data._embedded?.ocorrenciaResponseList || response.data || [];
+
+            const ordenados = (Array.isArray(dados) ? dados : []).sort((a: any, b: any) =>
+                new Date(b.dtOcorrencia).getTime() - new Date(a.dtOcorrencia).getTime()
+            );
+
+            setOcorrencias(ordenados);
+        } catch (error) {
+            console.log('Erro ao buscar ocorrências:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const formatData = (isoString: string) => {
+        if (!isoString) return '--/--';
         const data = new Date(isoString);
         return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')} ${data.getHours()}:${data.getMinutes().toString().padStart(2, '0')}`;
     };
@@ -48,28 +70,36 @@ export function OcorrenciasScreen({ navigation }: any) {
         }
     };
 
-    const handleNovaOcorrencia = () => {
+    const handleNovaOcorrencia = async () => {
         if (!titulo || !descricao) {
             Alert.alert('Erro', 'Preencha o título e a descrição da ocorrência.');
             return;
         }
-        const novaOcorrencia = {
-            idOcorrencia: Date.now(),
-            idAbrigo: 1,
-            nmTitulo: titulo,
-            dsDescricao: descricao,
-            tpSeveridade: severidade,
-            stStatus: "ABERTA",
-            dtOcorrencia: new Date().toISOString(),
-        };
 
-        setOcorrencias([novaOcorrencia, ...ocorrencias]);
+        try {
+            setIsSubmitting(true);
 
-        Alert.alert('Sucesso', 'Ocorrência registrada!');
-        setModalVisible(false);
-        setTitulo('');
-        setDescricao('');
-        setSeveridade('MEDIA');
+            await api.post(`/api/abrigos/${ABRIGO_ID}/ocorrencias`, {
+                nmTitulo: titulo,
+                dsDescricao: descricao,
+                tpSeveridade: severidade
+            });
+
+            Alert.alert('Sucesso', 'Ocorrência registrada e notificada!');
+            setModalVisible(false);
+            setTitulo('');
+            setDescricao('');
+            setSeveridade('MEDIA');
+
+            // Busca atualizada do backend
+            buscarOcorrencias();
+
+        } catch (error) {
+            console.log('Erro ao criar ocorrência:', error);
+            Alert.alert('Erro', 'Falha ao registrar a ocorrência.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const ocorrenciasFiltradas = ocorrencias.filter(o =>
@@ -101,11 +131,12 @@ export function OcorrenciasScreen({ navigation }: any) {
                     </TouchableOpacity>
                     <Text style={styles.title}>Ocorrências</Text>
                 </View>
-                <Ionicons name="warning" size={28} color="#FFFFFF" />
+                <TouchableOpacity onPress={buscarOcorrencias}>
+                    <Ionicons name="refresh" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.content}>
-
                 <View style={styles.filterContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         {['TODAS', 'ABERTA', 'RESOLVIDA'].map((status) => (
@@ -114,22 +145,24 @@ export function OcorrenciasScreen({ navigation }: any) {
                                 style={[styles.filterBtn, filtroStatus === status && styles.filterBtnActive]}
                                 onPress={() => setFiltroStatus(status)}
                             >
-                                <Text style={[styles.filterText, filtroStatus === status && styles.filterTextActive]}>
-                                    {status}
-                                </Text>
+                                <Text style={[styles.filterText, filtroStatus === status && styles.filterTextActive]}>{status}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                 </View>
 
-                <FlatList
-                    data={ocorrenciasFiltradas}
-                    keyExtractor={(item) => String(item.idOcorrencia)}
-                    renderItem={renderItem}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContent}
-                    ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.textSecondary }}>Nenhuma ocorrência encontrada.</Text>}
-                />
+                {isLoading ? (
+                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+                ) : (
+                    <FlatList
+                        data={ocorrenciasFiltradas}
+                        keyExtractor={(item) => String(item.idOcorrencia)}
+                        renderItem={renderItem}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.textSecondary }}>Nenhuma ocorrência encontrada.</Text>}
+                    />
+                )}
             </View>
 
             <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => setModalVisible(true)}>
@@ -138,7 +171,7 @@ export function OcorrenciasScreen({ navigation }: any) {
 
             <Modal visible={modalVisible} animationType="fade" transparent={true} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalOverlay}>
-                    <KeyboardAwareScrollView enableOnAndroid={true} extraScrollHeight={Platform.OS === 'ios' ? 20 : 40} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+                    <KeyboardAwareScrollView enableOnAndroid={true} extraScrollHeight={Platform.OS === 'ios' ? 20 : 40} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContainer}>
                         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => setModalVisible(false)} />
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
@@ -163,7 +196,7 @@ export function OcorrenciasScreen({ navigation }: any) {
                                 ))}
                             </View>
 
-                            <PrimaryButton title="REGISTRAR OCORRÊNCIA" onPress={handleNovaOcorrencia} />
+                            <PrimaryButton title="REGISTRAR OCORRÊNCIA" onPress={handleNovaOcorrencia} isLoading={isSubmitting} />
                         </View>
                     </KeyboardAwareScrollView>
                 </View>

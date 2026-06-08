@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  Modal, 
-  TextInput,
-  Alert,
-  Platform
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, FlatList, TouchableOpacity, Modal,
+  TextInput, Alert, Platform, ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,31 +11,9 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
 import { getStyles } from './styles';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { api } from '../../services/api';
 
-const MOCK_SOLICITACOES = [
-  {
-    idSolicitacao: 1,
-    idAbrigo: 1,
-    nmAbrigo: "Ginásio Central",
-    idRecurso: 101,
-    nmRecurso: "Colchões",
-    qtSolicitada: 50,
-    stStatus: "ABERTA",
-    dsJustificativa: "Aumento repentino no número de famílias acolhidas nesta madrugada.",
-    dtSolicitacao: "2026-06-08T05:10:26.336Z",
-  },
-  {
-    idSolicitacao: 2,
-    idAbrigo: 1,
-    nmAbrigo: "Ginásio Central",
-    idRecurso: 102,
-    nmRecurso: "Kits de Higiene",
-    qtSolicitada: 200,
-    stStatus: "EM_ATENDIMENTO",
-    dsJustificativa: "Estoque crítico, previsão de zerar em 2 dias.",
-    dtSolicitacao: "2026-06-06T14:20:00.000Z",
-  }
-];
+const ABRIGO_ID = 1; // Fixo para testes
 
 export function SolicitacoesScreen() {
   const insets = useSafeAreaInsets();
@@ -49,12 +21,36 @@ export function SolicitacoesScreen() {
   const styles = getStyles(themeType);
   const colors = theme[themeType];
 
-  const [solicitacoes, setSolicitacoes] = useState(MOCK_SOLICITACOES);
+  const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  
-  const [recurso, setRecurso] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [recursoId, setRecursoId] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [justificativa, setJustificativa] = useState('');
+
+  useEffect(() => {
+    buscarSolicitacoes();
+  }, []);
+
+  const buscarSolicitacoes = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get(`/api/abrigos/${ABRIGO_ID}/solicitacoes`);
+      const dados = response.data._embedded?.solicitacaoResponseList || response.data || [];
+
+      const ordenados = (Array.isArray(dados) ? dados : []).sort((a: any, b: any) =>
+        new Date(b.dtSolicitacao).getTime() - new Date(a.dtSolicitacao).getTime()
+      );
+
+      setSolicitacoes(ordenados);
+    } catch (error) {
+      console.log('Erro ao buscar solicitações:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,35 +62,40 @@ export function SolicitacoesScreen() {
   };
 
   const formatData = (isoString: string) => {
+    if (!isoString) return '--/--';
     const data = new Date(isoString);
     return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}`;
   };
 
-  const handleNovaSolicitacao = () => {
-    if (!recurso || !quantidade || !justificativa) {
+  const handleNovaSolicitacao = async () => {
+    if (!recursoId || !quantidade || !justificativa) {
       Alert.alert('Erro', 'Preencha todos os campos da solicitação.');
       return;
     }
-    
-    const novaSolicitacao = {
-      idSolicitacao: Date.now(),
-      idAbrigo: 1,
-      nmAbrigo: "Ginásio Central",
-      idRecurso: 999,
-      nmRecurso: recurso,
-      qtSolicitada: parseInt(quantidade),
-      stStatus: "ABERTA",
-      dsJustificativa: justificativa,
-      dtSolicitacao: new Date().toISOString(),
-    };
 
-    setSolicitacoes([novaSolicitacao, ...solicitacoes]);
+    try {
+      setIsSubmitting(true);
 
-    Alert.alert('Sucesso', 'Solicitação enviada para a central!');
-    setModalVisible(false);
-    setRecurso('');
-    setQuantidade('');
-    setJustificativa('');
+      await api.post(`/api/abrigos/${ABRIGO_ID}/solicitacoes`, {
+        idRecurso: Number(recursoId),
+        qtSolicitada: Number(quantidade),
+        dsJustificativa: justificativa
+      });
+
+      Alert.alert('Sucesso', 'Solicitação enviada para a central!');
+      setModalVisible(false);
+      setRecursoId('');
+      setQuantidade('');
+      setJustificativa('');
+
+      buscarSolicitacoes();
+
+    } catch (error) {
+      console.log('Erro ao criar solicitação:', error);
+      Alert.alert('Erro', 'Falha ao enviar a solicitação.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderItem = ({ item }: any) => (
@@ -102,13 +103,13 @@ export function SolicitacoesScreen() {
       <View style={styles.cardHeader}>
         <Text style={styles.resourceName}>{item.nmRecurso}</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.stStatus) }]}>
-          <Text style={styles.statusText}>{item.stStatus.replace('_', ' ')}</Text>
+          <Text style={styles.statusText}>{item.stStatus?.replace('_', ' ')}</Text>
         </View>
       </View>
 
       <View style={styles.cardBody}>
         <View style={styles.infoGroup}>
-          <Text style={styles.infoLabel}>Quantidade</Text>
+          <Text style={styles.infoLabel}>Qtd</Text>
           <Text style={styles.infoValue}>{item.qtSolicitada}</Text>
         </View>
         <View style={styles.infoGroup}>
@@ -116,7 +117,7 @@ export function SolicitacoesScreen() {
           <Text style={styles.infoValue}>{formatData(item.dtSolicitacao)}</Text>
         </View>
         <View style={styles.infoGroup}>
-          <Text style={styles.infoLabel}>ID Solic.</Text>
+          <Text style={styles.infoLabel}>ID</Text>
           <Text style={styles.infoValue}>#{item.idSolicitacao}</Text>
         </View>
       </View>
@@ -131,47 +132,35 @@ export function SolicitacoesScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.title}>Solicitações</Text>
-        <Ionicons name="git-network" size={28} color="#FFFFFF" />
+        <TouchableOpacity onPress={buscarSolicitacoes}>
+          <Ionicons name="refresh" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
-        <FlatList
-          data={solicitacoes}
-          keyExtractor={(item) => String(item.idSolicitacao)}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        />
+        {isLoading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={solicitacoes}
+            keyExtractor={(item) => String(item.idSolicitacao)}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.textSecondary }}>Nenhuma solicitação encontrada.</Text>}
+          />
+        )}
       </View>
 
-      <TouchableOpacity 
-        style={styles.fab} 
-        activeOpacity={0.8}
-        onPress={() => setModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>
 
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} animationType="fade" transparent={true} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <KeyboardAwareScrollView
-            enableOnAndroid={true}
-            extraScrollHeight={Platform.OS === 'ios' ? 20 : 40}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            <TouchableOpacity 
-              style={styles.dismissArea} 
-              activeOpacity={1} 
-              onPress={() => setModalVisible(false)} 
-            />
-            
+          <KeyboardAwareScrollView enableOnAndroid={true} extraScrollHeight={Platform.OS === 'ios' ? 20 : 40} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContainer}>
+            <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => setModalVisible(false)} />
+
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Nova Solicitação</Text>
@@ -180,13 +169,14 @@ export function SolicitacoesScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.inputLabel}>Recurso Necessário (ID ou Nome)</Text>
+              <Text style={styles.inputLabel}>ID do Recurso</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Ex: Água Mineral, Colchões..."
+                placeholder="Ex: 1, 2, 3..."
                 placeholderTextColor={colors.textSecondary}
-                value={recurso}
-                onChangeText={setRecurso}
+                keyboardType="numeric"
+                value={recursoId}
+                onChangeText={setRecursoId}
               />
 
               <Text style={styles.inputLabel}>Quantidade</Text>
@@ -202,7 +192,7 @@ export function SolicitacoesScreen() {
               <Text style={styles.inputLabel}>Justificativa</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
-                placeholder="Por que este recurso é necessário agora?"
+                placeholder="Por que este recurso é necessário?"
                 placeholderTextColor={colors.textSecondary}
                 multiline={true}
                 numberOfLines={4}
@@ -210,10 +200,7 @@ export function SolicitacoesScreen() {
                 onChangeText={setJustificativa}
               />
 
-              <PrimaryButton 
-                title="ENVIAR SOLICITAÇÃO" 
-                onPress={handleNovaSolicitacao} 
-              />
+              <PrimaryButton title="ENVIAR SOLICITAÇÃO" onPress={handleNovaSolicitacao} isLoading={isSubmitting} />
             </View>
           </KeyboardAwareScrollView>
         </View>

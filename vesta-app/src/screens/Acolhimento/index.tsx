@@ -16,6 +16,9 @@ import { theme } from '../../theme';
 import { getStyles } from './styles';
 import { CustomInput } from '../../components/CustomInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { api } from '../../services/api';
+
+const ABRIGO_ID = 1; // Fixo para testes
 
 interface Membro {
   nmPessoa: string;
@@ -30,21 +33,18 @@ export function AcolhimentoScreen({ navigation }: any) {
   const styles = getStyles(themeType);
   const colors = theme[themeType];
 
-  // Dados do Responsável
   const [nmResponsavel, setNmResponsavel] = useState('');
   const [nrCpfResponsavel, setNrCpfResponsavel] = useState('');
   const [nrTelefone, setNrTelefone] = useState('');
-
-  // Lista de Membros
   const [membros, setMembros] = useState<Membro[]>([]);
 
-  // Campos temporários para adicionar um novo membro
   const [novoMembroNome, setNovoMembroNome] = useState('');
   const [novoMembroNasc, setNovoMembroNasc] = useState('');
   const [novoMembroTpDoc, setNovoMembroTpDoc] = useState('RG');
   const [novoMembroNrDoc, setNovoMembroNrDoc] = useState('');
 
-  // Funções de Máscara
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCpfChange = (text: string) => {
     let value = text.replace(/\D/g, '');
     if (value.length > 11) value = value.substring(0, 11);
@@ -80,7 +80,6 @@ export function AcolhimentoScreen({ navigation }: any) {
       return;
     }
 
-    // Converte DD/MM/YYYY para YYYY-MM-DD para a API
     const partesData = novoMembroNasc.split('/');
     const dataApi = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
 
@@ -92,8 +91,6 @@ export function AcolhimentoScreen({ navigation }: any) {
     };
 
     setMembros([...membros, novo]);
-    
-    // Limpa o formulário de membro
     setNovoMembroNome('');
     setNovoMembroNasc('');
     setNovoMembroNrDoc('');
@@ -105,7 +102,7 @@ export function AcolhimentoScreen({ navigation }: any) {
     setMembros(novaLista);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!nmResponsavel || nrCpfResponsavel.length < 14 || nrTelefone.length < 14) {
       Alert.alert('Erro', 'Preencha todos os dados obrigatórios do responsável.');
       return;
@@ -113,18 +110,29 @@ export function AcolhimentoScreen({ navigation }: any) {
 
     const payload = {
       nmResponsavel,
-      nrCpfResponsavel: nrCpfResponsavel.replace(/\D/g, ''), // Limpa máscara para a API
+      nrCpfResponsavel: nrCpfResponsavel.replace(/\D/g, ''),
       nrTelefone: nrTelefone.replace(/\D/g, ''),
       membros
     };
 
-    console.log('Payload POST /api/abrigos/{idAbrigo}/familias/acolhimento: ', JSON.stringify(payload, null, 2));
+    try {
+      setIsSubmitting(true);
+      
+      // Disparo real para a API
+      await api.post(`/api/abrigos/${ABRIGO_ID}/familias/acolhimento`, payload);
 
-    Alert.alert(
-      'Acolhimento Concluído', 
-      'A família foi registrada com sucesso no abrigo.',
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
-    );
+      Alert.alert(
+        'Acolhimento Concluído', 
+        'A família foi registrada com sucesso no abrigo.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }] // Volta para a tela anterior
+      );
+
+    } catch (error) {
+      console.log('Erro no acolhimento:', error);
+      Alert.alert('Erro', 'Falha ao registrar a família no servidor.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -144,7 +152,6 @@ export function AcolhimentoScreen({ navigation }: any) {
           extraScrollHeight={40}
           keyboardShouldPersistTaps="handled"
         >
-          {/* SESSÃO 1: RESPONSÁVEL */}
           <Text style={styles.sectionTitle}>Dados do Responsável</Text>
           <View style={styles.cardForm}>
             <Text style={styles.inputLabel}>Nome Completo</Text>
@@ -177,10 +184,8 @@ export function AcolhimentoScreen({ navigation }: any) {
             />
           </View>
 
-          {/* SESSÃO 2: MEMBROS DA FAMÍLIA */}
           <Text style={styles.sectionTitle}>Membros da Família</Text>
           
-          {/* Lista de membros já adicionados */}
           {membros.length > 0 && (
             <View style={styles.memberList}>
               {membros.map((m, index) => (
@@ -197,7 +202,6 @@ export function AcolhimentoScreen({ navigation }: any) {
             </View>
           )}
 
-          {/* Formulário para adicionar novo membro */}
           <View style={styles.cardForm}>
             <Text style={styles.inputLabel}>Adicionar Dependente</Text>
             <CustomInput 
@@ -235,6 +239,7 @@ export function AcolhimentoScreen({ navigation }: any) {
           <PrimaryButton 
             title="CONCLUIR ACOLHIMENTO" 
             onPress={handleSubmit} 
+            isLoading={isSubmitting}
           />
         </KeyboardAwareScrollView>
       </View>
