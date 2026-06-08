@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { theme } from '../../theme';
 import { useThemeContext } from '../../contexts/ThemeContext';
@@ -23,8 +24,14 @@ export function ConfigScreen({ navigation }: any) {
         { 
           text: 'Sair', 
           style: 'destructive',
-          onPress: () => {
-            console.log('Usuário deslogado!');
+          onPress: async () => {
+            await AsyncStorage.removeItem('@Vesta:token');
+            await AsyncStorage.removeItem('@Vesta:user');
+            
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           } 
         }
       ]

@@ -98,8 +98,9 @@ function TabRoutes() {
 
 export function AppRoutes() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
       <Stack.Screen name="MainTabs" component={TabRoutes} />
+      <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Tema" component={TemaScreen} />
       <Stack.Screen name="Familias" component={FamiliasScreen} />
       <Stack.Screen name="Acolhimento" component={AcolhimentoScreen} />

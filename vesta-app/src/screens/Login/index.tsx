@@ -4,13 +4,16 @@ import {
   Text, 
   TouchableOpacity, 
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { VestaLogo } from '../../components/VestaLogo';
 import { CustomInput } from '../../components/CustomInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { api } from '../../services/api';
 
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { getStyles } from './styles';
@@ -23,11 +26,46 @@ export function LoginScreen({ navigation }: any) {
   const { themeType } = useThemeContext();
   const styles = getStyles(themeType);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Por favor, preencha o e-mail e a senha.');
+      return;
+    }
+
+    // --- MODO DESENVOLVEDOR (BURLANDO A API) ---
+    if (password === 'dev123') {
+      console.log('Login burlado para testes!');
+      await AsyncStorage.setItem('@Vesta:token', 'token-falso-para-testes');
+      navigation.navigate('MainTabs');
+      return; 
+    }
+    // ------------------------------------------
+
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const response = await api.post('/api/auth/login', {
+        email: email.trim(),
+        senha: password.trim()
+      });
+
+      const { token, tipo, perfil } = response.data;
+
+      await AsyncStorage.setItem('@Vesta:token', token);
+      await AsyncStorage.setItem('@Vesta:user', JSON.stringify({ email, perfil }));
+
       setIsLoading(false);
-    }, 1500);
+      navigation.navigate('MainTabs'); 
+      
+    } catch (error: any) {
+      setIsLoading(false);
+      console.log('Erro no login:', error.response?.data || error.message);
+      
+      Alert.alert(
+        'Falha no Acesso', 
+        'E-mail ou senha incorretos. Verifique seus dados e tente novamente.'
+      );
+    }
   };
 
   return (
@@ -71,7 +109,7 @@ export function LoginScreen({ navigation }: any) {
 
           <PrimaryButton 
             title="ENTRAR" 
-            onPress={() => navigation.navigate('Home')}
+            onPress={handleLogin}
             isLoading={isLoading}
           />
 
