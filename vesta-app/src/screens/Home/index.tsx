@@ -8,9 +8,9 @@ import { theme } from '../../theme';
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { getStyles } from './styles';
 
-export function HomeScreen() {
-  const insets = useSafeAreaInsets(); 
-  
+export function HomeScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+
   const { themeType } = useThemeContext();
   const styles = getStyles(themeType);
   const colors = theme[themeType];
@@ -28,7 +28,7 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      
+
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.greetingContainer}>
           <Text style={styles.greetingText}>Bem-vindo,</Text>
@@ -38,7 +38,7 @@ export function HomeScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
-        
+
         <Text style={styles.sectionTitle}>{dashboardData.abrigo}</Text>
 
         <View style={styles.card}>
@@ -67,14 +67,28 @@ export function HomeScreen() {
 
         <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Ações Operacionais</Text>
         <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('Acolhimento')}
+          >
             <Ionicons name="person-add-outline" size={20} color="#FFFFFF" />
             <Text style={styles.actionButtonText}>Acolher</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Recurso</Text>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('Familias')}
+          >
+            <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Saídas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('Ocorrencias')}
+          >
+            <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Relatar</Text>
           </TouchableOpacity>
         </View>
 

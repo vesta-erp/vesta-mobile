@@ -6,36 +6,40 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '../theme';
-import { useThemeContext } from '../contexts/ThemeContext'; 
+import { useThemeContext } from '../contexts/ThemeContext';
 
 import { LoginScreen } from '../screens/Login';
 import { HomeScreen } from '../screens/Home';
 import { EstoqueScreen } from '../screens/Estoque';
 import { SolicitacoesScreen } from '../screens/Solicitacoes';
 import { ConfigScreen } from '../screens/Config';
+
+import { FamiliasScreen } from '../screens/Familias';
+import { AcolhimentoScreen } from '../screens/Acolhimento';
+import { OcorrenciasScreen } from '../screens/Ocorrencias';
 import { TemaScreen } from '../screens/Tema';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function TabRoutes() {
-  const insets = useSafeAreaInsets(); 
-  
+  const insets = useSafeAreaInsets();
+
   const { themeType } = useThemeContext();
   const colors = theme[themeType];
-  
+
   const styles = getStyles(themeType);
 
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false, 
-        tabBarShowLabel: false, 
+        headerShown: false,
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 0,
-          height: 40 + insets.bottom, 
-          paddingBottom: insets.bottom, 
+          height: 40 + insets.bottom,
+          paddingBottom: insets.bottom,
           elevation: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -4 },
@@ -44,8 +48,8 @@ function TabRoutes() {
         },
       }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused }) => (
@@ -55,9 +59,9 @@ function TabRoutes() {
           )
         }}
       />
-      <Tab.Screen 
-        name="Solicitacoes" 
-        component={SolicitacoesScreen} 
+      <Tab.Screen
+        name="Solicitacoes"
+        component={SolicitacoesScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={focused ? styles.activeIconWrapper : styles.inactiveIconWrapper}>
@@ -66,9 +70,9 @@ function TabRoutes() {
           )
         }}
       />
-      <Tab.Screen 
-        name="Estoque" 
-        component={EstoqueScreen} 
+      <Tab.Screen
+        name="Estoque"
+        component={EstoqueScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={focused ? styles.activeIconWrapper : styles.inactiveIconWrapper}>
@@ -77,9 +81,9 @@ function TabRoutes() {
           )
         }}
       />
-      <Tab.Screen 
-        name="Config" 
-        component={ConfigScreen} 
+      <Tab.Screen
+        name="Config"
+        component={ConfigScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={focused ? styles.activeIconWrapper : styles.inactiveIconWrapper}>
@@ -97,6 +101,9 @@ export function AppRoutes() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={TabRoutes} />
       <Stack.Screen name="Tema" component={TemaScreen} />
+      <Stack.Screen name="Familias" component={FamiliasScreen} />
+      <Stack.Screen name="Acolhimento" component={AcolhimentoScreen} />
+      <Stack.Screen name="Ocorrencias" component={OcorrenciasScreen} />
     </Stack.Navigator>
   );
 }
@@ -114,12 +121,12 @@ const getStyles = (themeType: 'light' | 'dark') => {
       width: 60,
       height: 60,
       borderRadius: 30,
-      backgroundColor: colors.primary, 
+      backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: -30, 
+      marginTop: -30,
       borderWidth: 6,
-      borderColor: colors.background, 
+      borderColor: colors.background,
       elevation: 5,
       shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 4 },
