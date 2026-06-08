@@ -181,6 +181,31 @@ export const getStyles = (themeType: 'light' | 'dark') => {
     },
     severityTextActive: {
       color: '#FFFFFF',
+    },
+    filterContainer: {
+      flexDirection: 'row',
+      marginBottom: 16,
+    },
+    filterBtn: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterBtnActive: {
+      backgroundColor: colors.secondary,
+      borderColor: colors.secondary,
+    },
+    filterText: {
+      fontFamily: fonts.bold,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    filterTextActive: {
+      color: '#FFFFFF',
     }
   });
 };

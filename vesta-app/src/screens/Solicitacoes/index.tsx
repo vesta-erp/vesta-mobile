@@ -75,9 +75,21 @@ export function SolicitacoesScreen() {
       Alert.alert('Erro', 'Preencha todos os campos da solicitação.');
       return;
     }
-
-    console.log(`Payload POST /api/abrigos/{idAbrigo}/solicitacoes: { idRecurso: ${recurso}, qtSolicitada: ${quantidade}, dsJustificativa: '${justificativa}' }`);
     
+    const novaSolicitacao = {
+      idSolicitacao: Date.now(),
+      idAbrigo: 1,
+      nmAbrigo: "Ginásio Central",
+      idRecurso: 999,
+      nmRecurso: recurso,
+      qtSolicitada: parseInt(quantidade),
+      stStatus: "ABERTA",
+      dsJustificativa: justificativa,
+      dtSolicitacao: new Date().toISOString(),
+    };
+
+    setSolicitacoes([novaSolicitacao, ...solicitacoes]);
+
     Alert.alert('Sucesso', 'Solicitação enviada para a central!');
     setModalVisible(false);
     setRecurso('');

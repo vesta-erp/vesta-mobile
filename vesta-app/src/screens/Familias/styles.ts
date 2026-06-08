@@ -99,6 +99,24 @@ export const getStyles = (themeType: 'light' | 'dark') => {
       fontSize: 14,
       color: colors.error,
       marginLeft: 8,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      height: 50,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    searchInput: {
+      flex: 1,
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textPrimary,
+      marginLeft: 8,
     }
   });
 };
