@@ -1,19 +1,14 @@
 import { StyleSheet } from 'react-native';
-import { theme, fonts } from '../../theme';
 
 export const getStyles = (themeType: 'light' | 'dark') => {
-  const colors = theme[themeType];
-
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
     },
     content: {
       flexGrow: 1,
-      paddingBottom: 60,
-      paddingHorizontal: 32,
-      paddingTop: 80,
+      paddingHorizontal: 24,
+      paddingBottom: 40,
     },
     header: {
       flexDirection: 'row',
@@ -22,34 +17,36 @@ export const getStyles = (themeType: 'light' | 'dark') => {
     },
     backButton: {
       marginRight: 16,
+      padding: 4,
     },
     title: {
-      fontFamily: fonts.bold,
       fontSize: 28,
-      color: colors.textPrimary,
+      fontWeight: 'bold',
     },
     subtitle: {
-      fontFamily: fonts.regular,
-      fontSize: 14,
-      color: colors.textSecondary,
-      opacity: 0.8,
+      fontSize: 16,
+      lineHeight: 24,
       marginBottom: 30,
     },
+    formContainer: {
+      marginBottom: 20,
+    },
+    buttonWrapper: {
+      marginTop: 10,
+    },
     footer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 20,
       flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 20,
     },
     footerText: {
-      fontFamily: fonts.regular,
-      color: colors.textSecondary,
-      opacity: 0.8,
+      fontSize: 15,
+      marginRight: 6,
     },
     linkText: {
-      fontFamily: fonts.bold,
-      color: colors.secondary,
-      marginLeft: 5,
+      fontSize: 15,
+      fontWeight: 'bold',
     },
   });
 };

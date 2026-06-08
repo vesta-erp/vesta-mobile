@@ -9,6 +9,7 @@ import { theme } from '../theme';
 import { useThemeContext } from '../contexts/ThemeContext';
 
 import { LoginScreen } from '../screens/Login';
+import { CadastroScreen } from '../screens/Cadastro';
 import { HomeScreen } from '../screens/Home';
 import { EstoqueScreen } from '../screens/Estoque';
 import { SolicitacoesScreen } from '../screens/Solicitacoes';
@@ -102,6 +103,7 @@ export function AppRoutes() {
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
       <Stack.Screen name="MainTabs" component={TabRoutes} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Cadastro" component={CadastroScreen} />
       <Stack.Screen name="Tema" component={TemaScreen} />
       <Stack.Screen name="Sobre" component={SobreScreen} />
       <Stack.Screen name="Familias" component={FamiliasScreen} />
