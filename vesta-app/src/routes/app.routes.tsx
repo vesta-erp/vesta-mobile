@@ -10,6 +10,8 @@ import { useThemeContext } from '../contexts/ThemeContext';
 
 import { LoginScreen } from '../screens/Login';
 import { HomeScreen } from '../screens/Home';
+import { EstoqueScreen } from '../screens/Estoque';
+import { SolicitacoesScreen } from '../screens/Solicitacoes';
 import { ConfigScreen } from '../screens/Config';
 import { TemaScreen } from '../screens/Tema';
 
@@ -55,7 +57,7 @@ function TabRoutes() {
       />
       <Tab.Screen 
         name="Solicitacoes" 
-        component={LoginScreen} 
+        component={SolicitacoesScreen} 
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={focused ? styles.activeIconWrapper : styles.inactiveIconWrapper}>
@@ -66,7 +68,7 @@ function TabRoutes() {
       />
       <Tab.Screen 
         name="Estoque" 
-        component={LoginScreen} 
+        component={EstoqueScreen} 
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={focused ? styles.activeIconWrapper : styles.inactiveIconWrapper}>
