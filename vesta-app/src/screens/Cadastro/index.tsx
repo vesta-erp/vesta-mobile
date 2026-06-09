@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard
 } from 'react-native';
@@ -11,6 +11,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
+import { api } from '../../services/api';
 import { CustomInput } from '../../components/CustomInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { theme } from '../../theme';
@@ -29,7 +30,7 @@ export function CadastroScreen({ navigation }: any) {
   const [telefone, setTelefone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDocumentoChange = (text: string) => {
@@ -54,7 +55,72 @@ export function CadastroScreen({ navigation }: any) {
     return regex.test(emailText);
   };
 
-  const handleRegister = () => {
+  // const handleRegister = async () => {
+  //   if (!nome.trim() || !documento.trim() || !email.trim() || !telefone.trim() || !password || !confirmPassword) {
+  //     Toast.show({ type: 'info', text1: 'Atenção', text2: 'Por favor, preencha todos os campos.' });
+  //     return;
+  //   }
+  //   if (nome.trim().length < 3) {
+  //     Toast.show({ type: 'info', text1: 'Nome Inválido', text2: 'Por favor, insira um nome válido.' });
+  //     return;
+  //   }
+  //   if (!validateEmail(email)) {
+  //     Toast.show({ type: 'error', text1: 'E-mail Inválido', text2: 'O e-mail informado não possui um formato válido.' });
+  //     return;
+  //   }
+  //   if (documento.length < 14) {
+  //     Toast.show({ type: 'info', text1: 'CPF Incompleto', text2: 'O CPF informado está incompleto.' });
+  //     return;
+  //   }
+  //   if (telefone.length < 14) {
+  //     Toast.show({ type: 'info', text1: 'Telefone Incompleto', text2: 'O telefone informado está incompleto.' });
+  //     return;
+  //   }
+  //   if (password.length < 6) {
+  //     Toast.show({ type: 'info', text1: 'Senha Curta', text2: 'A senha deve ter no mínimo 6 caracteres.' });
+  //     return;
+  //   }
+  //   if (password !== confirmPassword) {
+  //     Toast.show({ type: 'error', text1: 'Senhas Divergentes', text2: 'As senhas digitadas não conferem.' });
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+
+  //   // --- MODO APRESENTAÇÃO DE VÍDEO (MOCK) ---
+  //   // Simulando o tempo de processamento para burlar a falta de token na API
+  //   setTimeout(() => {
+  //     setIsLoading(false);
+  //     Toast.show({
+  //       type: 'success',
+  //       text1: 'Cadastro Solicitado!',
+  //       text2: 'Seus dados foram enviados para aprovação da central.',
+  //       position: 'top'
+  //     });
+
+  //     // Volta para a tela de Login após o sucesso
+  //     navigation.goBack();
+  //   }, 1500);
+  //   // ------------------------------------------
+
+  //   /* CÓDIGO REAL COMENTADO PARA QUANDO O BACKEND ARRUMAR:
+  //   try {
+  //     const payload = {
+  //       nmUsuario: nome.trim(),
+  //       nrCpf: documento, 
+  //       nrTelefone: telefone,
+  //       dsEmail: email.trim().toLowerCase(),
+  //       dsSenha: password,
+  //       nmPerfil: "GESTOR",
+  //       idAbrigo: 1
+  //     };
+  //     await api.post('/api/admin/usuarios', payload);
+  //     // ... toast e navegação
+  //   } catch (error) { ... }
+  //   */
+  // };
+
+  const handleRegister = async () => {
     if (!nome.trim() || !documento.trim() || !email.trim() || !telefone.trim() || !password || !confirmPassword) {
       Toast.show({ type: 'info', text1: 'Atenção', text2: 'Por favor, preencha todos os campos.' });
       return;
@@ -85,18 +151,50 @@ export function CadastroScreen({ navigation }: any) {
     }
 
     setIsLoading(true);
-    
-    // Simulação do tempo de resposta da API
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const payload = {
+        nmUsuario: nome.trim(),
+        nrCpf: documento,
+        nrTelefone: telefone,
+        dsEmail: email.trim().toLowerCase(),
+        dsSenha: password,
+        nmPerfil: "GESTOR",
+        idAbrigo: 1
+      };
+
+      await api.post('/api/admin/usuarios', payload);
+
       Toast.show({
         type: 'success',
-        text1: 'Cadastro Solicitado 🎉',
-        text2: 'Aguarde a aprovação do Administrador Central.',
+        text1: 'Cadastro realizado!',
+        text2: 'Conta criada com sucesso! Você já pode fazer login.',
         position: 'top'
       });
-      navigation.goBack(); // Volta para a tela de Login
-    }, 1500);
+
+      navigation.goBack();
+
+    } catch (error: any) {
+      console.log('Erro ao cadastrar usuário:', error);
+
+      if (error.response && error.response.status === 403) {
+        Toast.show({
+          type: 'error',
+          text1: 'Acesso Negado (403)',
+          text2: 'A API bloqueou o cadastro. Peça ao backend para liberar esta rota.',
+          position: 'top'
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Falha no Cadastro',
+          text2: 'Não foi possível criar a conta. Tente novamente mais tarde.',
+          position: 'top'
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -109,77 +207,77 @@ export function CadastroScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          
+
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
               <Ionicons name="arrow-back" size={28} color={colors.textPrimary} />
             </TouchableOpacity>
             <Text style={[styles.title, { color: colors.textPrimary }]}>Nova Conta</Text>
           </View>
-          
+
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Preencha seus dados operacionais para solicitar acesso à plataforma Vesta.
           </Text>
 
           <View style={styles.formContainer}>
-            <CustomInput 
+            <CustomInput
               iconName="person-outline"
-              placeholder="Nome completo" 
+              placeholder="Nome completo"
               value={nome}
               onChangeText={setNome}
               autoCapitalize="words"
             />
 
-            <CustomInput 
+            <CustomInput
               iconName="card-outline"
-              placeholder="CPF" 
+              placeholder="CPF"
               value={documento}
               onChangeText={handleDocumentoChange}
               keyboardType="numeric"
               maxLength={14}
             />
-            
-            <CustomInput 
+
+            <CustomInput
               iconName="call-outline"
-              placeholder="Telefone (com DDD)" 
+              placeholder="Telefone (com DDD)"
               value={telefone}
               onChangeText={handleTelefoneChange}
               keyboardType="phone-pad"
               maxLength={15}
             />
 
-            <CustomInput 
+            <CustomInput
               iconName="mail-outline"
-              placeholder="E-mail operacional" 
+              placeholder="E-mail operacional"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            
-            <CustomInput 
+
+            <CustomInput
               iconName="lock-closed-outline"
-              placeholder="Crie uma senha" 
+              placeholder="Crie uma senha"
               value={password}
               onChangeText={setPassword}
-              isPassword 
+              isPassword
             />
 
-            <CustomInput 
+            <CustomInput
               iconName="checkmark-circle-outline"
-              placeholder="Confirme a senha" 
+              placeholder="Confirme a senha"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              isPassword 
+              isPassword
             />
 
             <View style={styles.buttonWrapper}>
-              <PrimaryButton 
-                title="SOLICITAR CADASTRO" 
-                onPress={handleRegister} 
+              <PrimaryButton
+                title="SOLICITAR CADASTRO"
+                onPress={handleRegister}
                 isLoading={isLoading}
               />
             </View>

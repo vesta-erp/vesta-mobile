@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const api = axios.create({
   baseURL: 'https://vesta-api-java-gwf7drgza3hjgfc6.brazilsouth-01.azurewebsites.net',
+  timeout: 10000,
 });
 
 api.interceptors.request.use(async (config) => {

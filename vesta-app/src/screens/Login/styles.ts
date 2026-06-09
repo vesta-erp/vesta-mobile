@@ -9,12 +9,19 @@ export const getStyles = (themeType: 'light' | 'dark') => {
       flex: 1,
       backgroundColor: colors.background,
     },
+    themeButton: {
+      position: 'absolute',
+      right: 24,
+      zIndex: 10,
+      padding: 8,
+    },
     content: {
       flexGrow: 1,
       paddingHorizontal: 32,
       justifyContent: 'center',
       paddingVertical: 40,
     },
+    // ... restante dos seus estilos (logoContainer, welcomeText, etc)
     logoContainer: {
       alignItems: 'center',
       marginBottom: 50,
