@@ -37,16 +37,7 @@ export function LoginScreen({ navigation }: any) {
       Alert.alert('Atenção', 'Por favor, preencha o e-mail e a senha.');
       return;
     }
-
-    // --- MODO DESENVOLVEDOR (BURLANDO A API) ---
-    if (password === 'dev123') {
-      console.log('Login burlado para testes!');
-      await AsyncStorage.setItem('@Vesta:token', 'token-falso-para-testes');
-      navigation.navigate('MainTabs');
-      return;
-    }
-    // ------------------------------------------
-
+    
     setIsLoading(true);
 
     try {

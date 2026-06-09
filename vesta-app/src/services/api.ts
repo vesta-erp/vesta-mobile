@@ -8,12 +8,13 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   try {
-    const token = await AsyncStorage.getItem('@Vesta:token');
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const isAuthRoute = config.url?.includes('/auth/');
+    if (!isAuthRoute) {
+      const token = await AsyncStorage.getItem('@Vesta:token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
-    
     return config;
   } catch (error) {
     return config;
