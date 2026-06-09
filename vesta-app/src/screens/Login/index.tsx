@@ -46,10 +46,7 @@ export function LoginScreen({ navigation }: any) {
         senha: password.trim()
       });
 
-      const rawToken = response.data.token;
-      const formattedToken = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
-
-      await AsyncStorage.setItem('@Vesta:token', formattedToken);
+      await AsyncStorage.setItem('@Vesta:token', response.data.token);
 
       await AsyncStorage.setItem('@Vesta:user', JSON.stringify({
         email: email.trim(),
