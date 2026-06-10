@@ -8,7 +8,7 @@ import { theme } from '../../theme';
 import { getStyles } from './styles';
 import { VestaLogo } from '../../components/VestaLogo';
 
-const LAST_COMMIT_HASH = 'a1b2c3d4e5f6g7h8i9j0'; 
+const LAST_COMMIT_HASH = '9c00e0d84bdf69e37f7a5e4e3af4bb018332e0df'; 
 const APP_VERSION = '1.0.0';
 
 export function SobreScreen({ navigation }: any) {
