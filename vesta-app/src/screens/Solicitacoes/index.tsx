@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, Modal,
-  TextInput, Alert, Platform, ActivityIndicator
+  TextInput, Platform, ActivityIndicator, ScrollView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,19 @@ import { api } from '../../services/api';
 
 const ABRIGO_ID = 1; // Fixo para testes
 
+const RECURSOS_SEED = [
+  { id: 1, nome: 'Água Potável' },
+  { id: 2, nome: 'Arroz' },
+  { id: 3, nome: 'Feijão' },
+  { id: 4, nome: 'Leite em Pó' },
+  { id: 5, nome: 'Cobertor' },
+  { id: 6, nome: 'Kit Higiene Pessoal' },
+  { id: 7, nome: 'Fraldas' },
+  { id: 8, nome: 'Medicamento Básico' },
+  { id: 9, nome: 'Colchão' },
+  { id: 10, nome: 'Gerador de Energia' },
+];
+
 export function SolicitacoesScreen() {
   const insets = useSafeAreaInsets();
   const { themeType } = useThemeContext();
@@ -27,7 +40,7 @@ export function SolicitacoesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [recursoId, setRecursoId] = useState('');
+  const [recursoSelecionado, setRecursoSelecionado] = useState<number | null>(null);
   const [quantidade, setQuantidade] = useState('');
   const [justificativa, setJustificativa] = useState('');
 
@@ -39,15 +52,20 @@ export function SolicitacoesScreen() {
     try {
       setIsLoading(true);
       const response = await api.get(`/api/abrigos/${ABRIGO_ID}/solicitacoes`);
-      const dados = response.data._embedded?.solicitacaoResponseList || response.data || [];
+      const dados = response.data?._embedded?.solicitacaoResponseList || response.data || [];
 
-      const ordenados = (Array.isArray(dados) ? dados : []).sort((a: any, b: any) =>
-        new Date(b.dtSolicitacao).getTime() - new Date(a.dtSolicitacao).getTime()
-      );
+      if (Array.isArray(dados)) {
+        const ordenados = dados.sort((a: any, b: any) =>
+          new Date(b.dtSolicitacao).getTime() - new Date(a.dtSolicitacao).getTime()
+        );
+        setSolicitacoes(ordenados);
+      } else {
+        setSolicitacoes([]);
+      }
 
-      setSolicitacoes(ordenados);
     } catch (error) {
       console.log('Erro ao buscar solicitações:', error);
+      setSolicitacoes([]);
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +87,7 @@ export function SolicitacoesScreen() {
   };
 
   const handleNovaSolicitacao = async () => {
-    if (!recursoId || !quantidade || !justificativa) {
+    if (!recursoSelecionado || !quantidade || !justificativa) {
       Toast.show({ type: 'info', text1: 'Atenção', text2: 'Preencha todos os campos da solicitação.' });
       return;
     }
@@ -77,12 +95,20 @@ export function SolicitacoesScreen() {
     try {
       setIsSubmitting(true);
       await api.post(`/api/abrigos/${ABRIGO_ID}/solicitacoes`, {
-        idRecurso: Number(recursoId), qtSolicitada: Number(quantidade), dsJustificativa: justificativa
+        idRecurso: recursoSelecionado,
+        qtSolicitada: Number(quantidade),
+        dsJustificativa: justificativa
       });
 
       Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Solicitação enviada para a central!' });
       setModalVisible(false);
-      setRecursoId(''); setQuantidade(''); setJustificativa('');
+
+      // Limpa os campos
+      setRecursoSelecionado(null);
+      setQuantidade('');
+      setJustificativa('');
+
+      // Atualiza a lista para mostrar o novo pedido
       buscarSolicitacoes();
 
     } catch (error) {
@@ -138,11 +164,15 @@ export function SolicitacoesScreen() {
         ) : (
           <FlatList
             data={solicitacoes}
-            keyExtractor={(item) => String(item.idSolicitacao)}
+            keyExtractor={(item, index) => item.idSolicitacao ? String(item.idSolicitacao) : String(index)}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.textSecondary }}>Nenhuma solicitação encontrada.</Text>}
+            ListEmptyComponent={
+              <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: 20 }}>
+                Nenhuma solicitação encontrada.
+              </Text>
+            }
           />
         )}
       </View>
@@ -164,15 +194,41 @@ export function SolicitacoesScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.inputLabel}>ID do Recurso</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Ex: 1, 2, 3..."
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="numeric"
-                value={recursoId}
-                onChangeText={setRecursoId}
-              />
+              <Text style={styles.inputLabel}>Qual recurso está faltando?</Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 16 }}
+                contentContainerStyle={{ paddingRight: 20 }}
+              >
+                {RECURSOS_SEED.map((recurso) => {
+                  const isSelected = recursoSelecionado === recurso.id;
+                  return (
+                    <TouchableOpacity
+                      key={recurso.id}
+                      onPress={() => setRecursoSelecionado(recurso.id)}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        backgroundColor: isSelected ? colors.primary : colors.background,
+                        borderWidth: 1,
+                        borderColor: isSelected ? colors.primary : colors.border,
+                        borderRadius: 20,
+                        marginRight: 8,
+                      }}
+                    >
+                      <Text style={{
+                        color: isSelected ? '#FFFFFF' : colors.textPrimary,
+                        fontWeight: isSelected ? 'bold' : 'normal',
+                        fontSize: 14
+                      }}>
+                        {recurso.nome}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </ScrollView>
 
               <Text style={styles.inputLabel}>Quantidade</Text>
               <TextInput

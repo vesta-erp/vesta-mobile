@@ -144,6 +144,58 @@ export const getStyles = (themeType: 'light' | 'dark') => {
       color: colors.secondary,
       fontSize: 14,
       marginLeft: 4,
-    }
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: 'flex-end',
+    },
+    dismissArea: {
+      flex: 1,
+    },
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 24,
+      paddingBottom: 40,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    modalTitle: {
+      fontFamily: fonts.bold,
+      fontSize: 20,
+      color: colors.textPrimary,
+    },
+    inputLabel: {
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 8,
+    },
+    textInput: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 16,
+      fontFamily: fonts.regular,
+      fontSize: 16,
+      color: colors.textPrimary,
+      marginBottom: 24,
+    },
   });
 };
