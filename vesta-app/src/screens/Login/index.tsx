@@ -128,13 +128,6 @@ export function LoginScreen({ navigation }: any) {
             isLoading={isLoading}
           />
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Não possui acesso?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
-              <Text style={styles.linkText}>Solicitar cadastro</Text>
-            </TouchableOpacity>
-          </View>
-
         </KeyboardAwareScrollView>
       </View>
     </TouchableWithoutFeedback>

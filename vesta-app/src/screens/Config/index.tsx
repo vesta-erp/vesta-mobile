@@ -17,6 +17,7 @@ export function ConfigScreen({ navigation }: any) {
 
   const [nomeCompleto, setNomeCompleto] = useState('Carregando...');
   const [emailUsuario, setEmailUsuario] = useState('Carregando...');
+  const [perfilUsuario, setPerfilUsuario] = useState('OPERADOR');
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -24,9 +25,12 @@ export function ConfigScreen({ navigation }: any) {
         const userDataString = await AsyncStorage.getItem('@Vesta:user');
         if (userDataString) {
           const userData = JSON.parse(userDataString);
-          
+
           setNomeCompleto(userData.nome || 'Operador Vesta');
           setEmailUsuario(userData.email || 'email@vesta.gov.br');
+
+          const perfil = userData.perfil || 'OPERADOR';
+          setPerfilUsuario(perfil.toUpperCase());
         }
       } catch (error) {
         console.log('Erro ao ler AsyncStorage na Config:', error);
@@ -42,18 +46,18 @@ export function ConfigScreen({ navigation }: any) {
       'Tem certeza que deseja desconectar do sistema Vesta?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sair', 
+        {
+          text: 'Sair',
           style: 'destructive',
           onPress: async () => {
             await AsyncStorage.removeItem('@Vesta:token');
             await AsyncStorage.removeItem('@Vesta:user');
-            
+
             navigation.reset({
               index: 0,
               routes: [{ name: 'Login' }],
             });
-          } 
+          }
         }
       ]
     );
@@ -71,7 +75,7 @@ export function ConfigScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      
+
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.avatarContainer}>
           <Ionicons name="person" size={40} color={colors.primary} />
@@ -81,7 +85,14 @@ export function ConfigScreen({ navigation }: any) {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
+
+        {perfilUsuario !== 'OPERADOR' && (
+          <>
+            <Text style={styles.sectionTitle}>Operacional</Text>
+            <OptionItem icon="color-wand-outline" title="Cadastrar novo usuário" onPress={() => navigation.navigate('Cadastro')} />
+          </>
+        )}
+
         <Text style={styles.sectionTitle}>Preferências</Text>
         <OptionItem icon="person-outline" title="Editar Perfil" />
         <OptionItem icon="notifications-outline" title="Notificações" />
