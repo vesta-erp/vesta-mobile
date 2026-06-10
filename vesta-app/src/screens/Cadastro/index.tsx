@@ -127,7 +127,7 @@ export function CadastroScreen({ navigation }: any) {
 
       Toast.show({
         type: 'success',
-        text1: 'Usuário cadastrado 🎉',
+        text1: 'Usuário cadastrado!',
         text2: `A conta de ${perfilNovoUsuario} foi criada com sucesso!`,
         position: 'top'
       });

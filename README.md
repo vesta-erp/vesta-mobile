@@ -79,10 +79,10 @@ O aplicativo cumpre todos os requisitos de CRUD, navegação e autenticação:
 
 ## 👥 Integrantes do Grupo
 
-* **Gabriel Cruz** - RM: 559613
-* **João Victor Madella** - RM: 561007
-* **Kauã Ferreira** - RM: 560992
-* **Nathália Mantovani** - RM: 99904
-* **Vinicius Bitú** - RM: 560227
+* [@gabrielCZz](https://github.com/orgs/vesta-erp/people/gabrielCZz) - Gabriel Cruz | RM 559613
+* [@jvmadella](https://github.com/orgs/vesta-erp/people/jvmadella) - João Victor Madella | RM: 561007
+* [@k-auaferreira](https://github.com/orgs/vesta-erp/people/k-auaferreira) - Kauã Ferreira | RM 560992
+* [@naah-m](https://github.com/orgs/vesta-erp/people/gabrielCZz) - Nathália Mantovani | RM: 99904
+* [@Vi-debu](https://github.com/orgs/vesta-erp/people/Vi-debu) - Vinicius Bitú | RM560227
 
 ---
