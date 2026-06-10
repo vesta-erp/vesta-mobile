@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
@@ -10,7 +11,7 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { getStyles } from './styles';
 import { api } from '../../services/api';
 
-const ABRIGO_ID = 1; // Fixo para testes
+const ABRIGO_ID = 1;
 
 export function HomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets(); 
@@ -19,9 +20,8 @@ export function HomeScreen({ navigation }: any) {
   const styles = getStyles(themeType);
   const colors = theme[themeType];
 
-  // Estados para guardar os dados da API
   const [isLoading, setIsLoading] = useState(true);
-  const [operadorNome, setOperadorNome] = useState('Operador');
+  const [operadorNome, setOperadorNome] = useState('Carregando...');
   const [dadosAbrigo, setDadosAbrigo] = useState({
     nome: 'Carregando...',
     ocupacaoAtual: 0,
@@ -29,16 +29,29 @@ export function HomeScreen({ navigation }: any) {
   });
   const [recursosCriticos, setRecursosCriticos] = useState(0);
 
-  // Busca os dados assim que a tela abre
   useEffect(() => {
+    carregarUsuario();
     buscarDadosDashboard();
   }, []);
+
+  const carregarUsuario = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('@Vesta:user');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        const primeiroNome = userData.nome;
+        setOperadorNome(primeiroNome);
+      }
+    } catch (error) {
+      console.log('Erro ao ler AsyncStorage:', error);
+      setOperadorNome('Operador');
+    }
+  };
 
   const buscarDadosDashboard = async () => {
     try {
       setIsLoading(true);
 
-      // Fazemos as duas requisições ao mesmo tempo para ser mais rápido
       const [resIndicadores, resEstoqueCritico] = await Promise.all([
         api.get(`/api/indicadores/abrigo/${ABRIGO_ID}`),
         api.get(`/api/abrigos/${ABRIGO_ID}/estoque/criticos`)
@@ -50,7 +63,8 @@ export function HomeScreen({ navigation }: any) {
         capacidadeMaxima: resIndicadores.data.qtCapacidadeMaxima,
       });
 
-      setRecursosCriticos(resEstoqueCritico.data.length);
+      const listaCriticos = resEstoqueCritico.data?._embedded?.estoqueResponseList || [];
+      setRecursosCriticos(listaCriticos.length);
 
     } catch (error) {
       console.log('Erro ao buscar dados da Home:', error);

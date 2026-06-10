@@ -50,7 +50,8 @@ export function LoginScreen({ navigation }: any) {
 
       await AsyncStorage.setItem('@Vesta:user', JSON.stringify({
         email: email.trim(),
-        perfil: response.data.perfil || 'GESTOR'
+        perfil: response.data.perfil || 'GESTOR',
+        nome: response.data.nmUsuario || 'Operador Vesta'
       }));
 
       setIsLoading(false);

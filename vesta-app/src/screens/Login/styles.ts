@@ -21,7 +21,6 @@ export const getStyles = (themeType: 'light' | 'dark') => {
       justifyContent: 'center',
       paddingVertical: 40,
     },
-    // ... restante dos seus estilos (logoContainer, welcomeText, etc)
     logoContainer: {
       alignItems: 'center',
       marginBottom: 50,

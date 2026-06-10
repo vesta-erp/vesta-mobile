@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +14,27 @@ export function ConfigScreen({ navigation }: any) {
   const { themeType } = useThemeContext();
   const styles = getStyles(themeType);
   const colors = theme[themeType];
+
+  const [nomeCompleto, setNomeCompleto] = useState('Carregando...');
+  const [emailUsuario, setEmailUsuario] = useState('Carregando...');
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      try {
+        const userDataString = await AsyncStorage.getItem('@Vesta:user');
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          
+          setNomeCompleto(userData.nome || 'Operador Vesta');
+          setEmailUsuario(userData.email || 'email@vesta.gov.br');
+        }
+      } catch (error) {
+        console.log('Erro ao ler AsyncStorage na Config:', error);
+      }
+    };
+
+    carregarUsuario();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -55,8 +76,8 @@ export function ConfigScreen({ navigation }: any) {
         <View style={styles.avatarContainer}>
           <Ionicons name="person" size={40} color={colors.primary} />
         </View>
-        <Text style={styles.userName}>Kauã Silva</Text>
-        <Text style={styles.userRole}>Operador de Abrigo - ID: 4920</Text>
+        <Text style={styles.userName}>{nomeCompleto}</Text>
+        <Text style={styles.userRole}>{emailUsuario}</Text>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
