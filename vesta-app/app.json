@@ -21,13 +21,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.fiaper.vestaapp"
     },
     "web": {
       "favicon": "./assets/images/logo-reduzido_vesta.png"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "36cf540b-2d14-440d-906b-672987fc183a"
+      }
+    }
   }
 }
