@@ -14,13 +14,6 @@ O Vesta App resolve esse problema descentralizando a operação: o gestor do abr
 
 ---
 
-## 📺 Pitch e Demonstração
-
-Assista ao vídeo demonstrando todas as funcionalidades, fluxos e a arquitetura do aplicativo:
-**[Link do YouTube]**
-
----
-
 ## 🚀 Funcionalidades e Requisitos Atendidos
 
 O aplicativo cumpre todos os requisitos de CRUD, navegação e autenticação:
